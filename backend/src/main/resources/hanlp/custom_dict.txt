@@ -1,0 +1,151 @@
+# 自定义词典 - 计算机技能词
+# 每行一个词，HanLP 会优先识别
+# 编程语言
+Java
+Python
+JavaScript
+TypeScript
+C++
+C#
+Go
+Rust
+Kotlin
+Swift
+PHP
+Ruby
+Scala
+Shell
+SQL
+HTML
+CSS
+Node.js
+Deno
+
+# 前端框架/库
+React
+Vue
+Angular
+jQuery
+Bootstrap
+Tailwind CSS
+Svelte
+Next.js
+Nuxt.js
+Express.js
+Django
+Flask
+Spring Boot
+Spring Cloud
+MyBatis
+Hibernate
+FastAPI
+
+# 数据库
+MySQL
+PostgreSQL
+MongoDB
+Redis
+Elasticsearch
+SQLite
+Oracle
+SQL Server
+MariaDB
+Memcached
+ClickHouse
+InfluxDB
+
+# 中间件/消息队列
+RabbitMQ
+Kafka
+RocketMQ
+ActiveMQ
+Nginx
+Tomcat
+Docker
+Kubernetes
+Jenkins
+GitLab CI
+Prometheus
+Grafana
+
+# 云服务
+AWS
+Azure
+Aliyun
+Tencent Cloud
+Huawei Cloud
+Docker
+Kubernetes
+Serverless
+Lambda
+S3
+ECS
+OSS
+CDN
+
+# 大数据/AI
+TensorFlow
+PyTorch
+Hadoop
+Spark
+Flink
+Hive
+HBase
+ZooKeeper
+Airflow
+MLflow
+Pandas
+NumPy
+Scikit-learn
+OpenCV
+NLP
+BERT
+GPT
+Transformer
+RAG
+
+# 工具/协议
+Git
+Linux
+Maven
+Gradle
+Webpack
+Vite
+Babel
+ESLint
+Prettier
+WebSocket
+gRPC
+RESTful
+GraphQL
+OAuth
+JWT
+Redis
+Protobuf
+Swagger
+Postman
+Jira
+Confluence
+
+# 认证/安全
+Spring Security
+Shiro
+JWT
+OAuth2
+SSL
+TLS
+HTTPS
+CORS
+CSRF
+XSS
+SQL注入
+
+# 项目管理
+Scrum
+Agile
+Git
+GitHub
+GitLab
+Bitbucket
+CI/CD
+DevOps

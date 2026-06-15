@@ -1,0 +1,22 @@
+server:
+  port: 8080
+
+spring:
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/resume_builder
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 50MB
+
+jwt:
+  secret: ${JWT_SECRET:dev-secret-key-change-in-production-minimum-256-bits}
+  expiration: 86400000  # 24小时
+
+hanlp:
+  custom-dict: classpath:hanlp/custom_dict.txt
+  stopwords: classpath:hanlp/stopwords.txt
+
+app:
+  template-path: ${user.dir}/templates

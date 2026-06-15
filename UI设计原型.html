@@ -1,0 +1,2067 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>履历沉淀与简历生成器 - UI 设计原型</title>
+<style>
+  /* ===== Design Tokens ===== */
+  :root {
+    --primary: #1890ff;
+    --primary-hover: #40a9ff;
+    --primary-active: #096dd9;
+    --success: #52c41a;
+    --warning: #faad14;
+    --error: #f5222d;
+    --bg-body: #f0f2f5;
+    --bg-card: #ffffff;
+    --bg-sidebar: #001529;
+    --bg-sidebar-hover: #1890ff;
+    --text-primary: #262626;
+    --text-secondary: #595959;
+    --text-tertiary: #8c8c8c;
+    --border: #d9d9d9;
+    --border-focus: #40a9ff;
+    --shadow: 0 2px 8px rgba(0,0,0,0.06);
+    --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+    --radius: 8px;
+    --radius-lg: 20px;
+    --sidebar-width: 240px;
+    --sidebar-collapsed: 80px;
+    --header-height: 56px;
+    --max-width: 1400px;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg-body);
+    color: var(--text-primary);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ===== Top Navigation ===== */
+  .topnav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 48px;
+    background: #fff;
+    border-bottom: 1px solid #e8e8e8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    z-index: 1000;
+    user-select: none;
+  }
+  .topnav .badge {
+    display: inline-block;
+    background: var(--primary);
+    color: #fff;
+    font-size: 11px;
+    padding: 2px 10px;
+    border-radius: 10px;
+    margin-left: 6px;
+  }
+  .topnav .page-indicator {
+    font-size: 13px;
+    color: var(--text-tertiary);
+  }
+  .topnav .page-indicator strong {
+    color: var(--text-primary);
+  }
+  .topnav a {
+    color: var(--text-tertiary);
+    text-decoration: none;
+    font-size: 13px;
+    margin: 0 8px;
+    transition: color 0.2s;
+  }
+  .topnav a:hover { color: var(--primary); }
+  .topnav a.active { color: var(--primary); font-weight: 600; }
+
+  /* ===== Page Container ===== */
+  .page-container {
+    margin-top: 48px;
+    display: flex;
+    min-height: calc(100vh - 48px);
+  }
+
+  /* ===== Sidebar ===== */
+  .sidebar {
+    width: var(--sidebar-width);
+    background: var(--bg-sidebar);
+    color: #fff;
+    position: fixed;
+    top: 48px;
+    left: 0;
+    bottom: 0;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    transition: width 0.3s;
+    overflow: hidden;
+  }
+  .sidebar-logo {
+    height: 64px;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    flex-shrink: 0;
+  }
+  .sidebar-logo .logo-icon {
+    width: 32px;
+    height: 32px;
+    background: var(--primary);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .sidebar-logo .logo-text {
+    font-size: 16px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .sidebar-menu {
+    padding: 12px 0;
+    flex: 1;
+  }
+  .sidebar-menu-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 24px;
+    gap: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: rgba(255,255,255,0.65);
+    font-size: 14px;
+    border-left: 3px solid transparent;
+    white-space: nowrap;
+  }
+  .sidebar-menu-item:hover {
+    color: #fff;
+    background: rgba(255,255,255,0.08);
+  }
+  .sidebar-menu-item.active {
+    color: #fff;
+    background: var(--primary);
+    border-left-color: #fff;
+  }
+  .sidebar-menu-item .icon {
+    font-size: 18px;
+    width: 24px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .sidebar-footer {
+    padding: 16px 24px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  .sidebar-footer .avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .sidebar-footer .user-info {
+    flex: 1;
+    white-space: nowrap;
+  }
+  .sidebar-footer .user-name {
+    font-size: 13px;
+    color: #fff;
+  }
+  .sidebar-footer .user-role {
+    font-size: 11px;
+    color: rgba(255,255,255,0.45);
+  }
+
+  /* ===== Main Content ===== */
+  .main-content {
+    margin-left: var(--sidebar-width);
+    flex: 1;
+    padding: 24px;
+    min-height: calc(100vh - 48px);
+  }
+
+  /* ===== Page Sections (show/hide) ===== */
+  .page-section {
+    display: none;
+  }
+  .page-section.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ===== Common Components ===== */
+  .page-title {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .page-subtitle {
+    font-size: 14px;
+    color: var(--text-tertiary);
+    margin-bottom: 24px;
+  }
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 20px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-family: var(--font);
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+    font-weight: 500;
+    text-decoration: none;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+    color: #fff;
+    border-color: var(--primary);
+  }
+  .btn-primary:hover {
+    background: var(--primary-hover);
+    box-shadow: 0 2px 8px rgba(24,144,255,0.35);
+  }
+  .btn-default {
+    background: #fff;
+    color: var(--text-primary);
+    border-color: var(--border);
+  }
+  .btn-default:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+  .btn-text {
+    background: transparent;
+    color: var(--text-secondary);
+    border: none;
+    padding: 4px 8px;
+  }
+  .btn-text:hover { color: var(--primary); }
+  .btn-sm { padding: 4px 12px; font-size: 13px; }
+  .btn-danger { color: var(--error); border-color: var(--error); }
+  .btn-danger:hover { background: var(--error); color: #fff; }
+  .btn-icon {
+    width: 32px; height: 32px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: #fff;
+    cursor: pointer;
+    color: var(--text-tertiary);
+    transition: all 0.2s;
+  }
+  .btn-icon:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+
+  .input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-family: var(--font);
+    outline: none;
+    transition: all 0.2s;
+  }
+  .input:focus {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 2px rgba(24,144,255,0.2);
+  }
+  .input-group {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px;
+  }
+
+  .tag {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .tag-blue { background: #e6f7ff; color: #1890ff; border: 1px solid #91d5ff; }
+  .tag-green { background: #f6ffed; color: #52c41a; border: 1px solid #b7eb8f; }
+  .tag-orange { background: #fff7e6; color: #fa8c16; border: 1px solid #ffd591; }
+  .tag-purple { background: #f9f0ff; color: #722ed1; border: 1px solid #d3adf7; }
+  .tag-red { background: #fff1f0; color: #f5222d; border: 1px solid #ffa39e; }
+  .tag-cyan { background: #e6fffb; color: #13c2c2; border: 1px solid #87e8de; }
+
+  .badge-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    border-radius: 10px;
+    background: var(--primary);
+    color: #fff;
+    font-size: 11px;
+    padding: 0 6px;
+  }
+  .badge-count.red { background: var(--error); }
+
+  .filter-bar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+  .filter-bar .input { width: 240px; }
+
+  .filter-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    border: 1px solid var(--border);
+    background: #fff;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-secondary);
+    font-family: var(--font);
+  }
+  .filter-chip:hover { border-color: var(--primary); color: var(--primary); }
+  .filter-chip.active {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-tertiary);
+  }
+  .empty-state .empty-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.3;
+  }
+  .empty-state h3 { font-size: 16px; color: var(--text-secondary); margin-bottom: 8px; }
+  .empty-state p { font-size: 13px; }
+
+  .stat-card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .stat-card .stat-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+  .stat-card .stat-icon.blue { background: #e6f7ff; color: var(--primary); }
+  .stat-card .stat-icon.green { background: #f6ffed; color: var(--success); }
+  .stat-card .stat-icon.orange { background: #fff7e6; color: var(--warning); }
+  .stat-card .stat-icon.purple { background: #f9f0ff; color: #722ed1; }
+  .stat-card .stat-value { font-size: 28px; font-weight: 700; line-height: 1.2; }
+  .stat-card .stat-label { font-size: 13px; color: var(--text-tertiary); }
+
+  .record-card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    box-shadow: var(--shadow);
+    display: flex;
+    gap: 16px;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+  .record-card:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    transform: translateY(-1px);
+  }
+  .record-card .record-type-icon {
+    width: 40px; height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .record-card .record-content { flex: 1; min-width: 0; }
+  .record-card .record-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .record-card .record-desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+  .record-card .record-meta {
+    display: flex;
+    gap: 12px;
+    font-size: 12px;
+    color: var(--text-tertiary);
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .record-card .record-actions {
+    display: flex;
+    gap: 4px;
+    align-items: flex-start;
+    flex-shrink: 0;
+  }
+
+  /* ===== Page-Specific Styles ===== */
+
+  /* --- Login Page --- */
+  .login-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    margin: -48px 0 0;
+    padding: 48px 0 0;
+  }
+  .login-card {
+    width: 420px;
+    background: #fff;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    padding: 40px;
+  }
+  .login-card .login-logo {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .login-card .login-logo .logo-icon-big {
+    width: 56px; height: 56px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    color: #fff;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .login-card .login-logo h1 {
+    font-size: 20px;
+    font-weight: 600;
+  }
+  .login-card .login-logo p {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    margin-top: 4px;
+  }
+  .login-card .form-group {
+    margin-bottom: 20px;
+  }
+  .login-card .form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 6px;
+    color: var(--text-primary);
+  }
+  .login-card .form-group .input {
+    height: 44px;
+    font-size: 15px;
+  }
+  .login-card .btn-primary {
+    width: 100%;
+    height: 44px;
+    justify-content: center;
+    font-size: 16px;
+  }
+  .login-card .login-footer {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 13px;
+    color: var(--text-tertiary);
+  }
+  .login-card .login-footer a {
+    color: var(--primary);
+    text-decoration: none;
+  }
+  .login-card .divider {
+    display: flex;
+    align-items: center;
+    margin: 24px 0;
+    color: var(--text-tertiary);
+    font-size: 12px;
+  }
+  .login-card .divider::before,
+  .login-card .divider::after {
+    content: '';
+    flex: 1;
+    border-top: 1px solid var(--border);
+  }
+  .login-card .divider::before { margin-right: 12px; }
+  .login-card .divider::after { margin-left: 12px; }
+
+  /* --- Dashboard --- */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .dashboard-grid .card-full {
+    grid-column: 1 / -1;
+  }
+  .card-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .card-title a {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--primary);
+    text-decoration: none;
+  }
+  /* Word Cloud Placeholder */
+  .wordcloud-placeholder {
+    height: 240px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 20px;
+  }
+  .wordcloud-placeholder .word {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 6px;
+    background: #f0f5ff;
+    color: var(--primary);
+    font-weight: 500;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+  .wordcloud-placeholder .word:hover {
+    background: var(--primary);
+    color: #fff;
+    transform: scale(1.05);
+  }
+  .wordcloud-placeholder .word.xs { font-size: 12px; opacity: 0.6; }
+  .wordcloud-placeholder .word.sm { font-size: 14px; opacity: 0.7; }
+  .wordcloud-placeholder .word.md { font-size: 18px; opacity: 0.8; }
+  .wordcloud-placeholder .word.lg { font-size: 24px; opacity: 0.9; }
+  .wordcloud-placeholder .word.xl { font-size: 30px; }
+
+  .timeline { padding: 0; }
+  .timeline-item {
+    display: flex;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .timeline-item:last-child { border-bottom: none; }
+  .timeline-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--primary);
+    margin-top: 6px;
+    flex-shrink: 0;
+  }
+  .timeline-item .tl-content { flex: 1; }
+  .timeline-item .tl-title { font-size: 14px; font-weight: 500; }
+  .timeline-item .tl-desc { font-size: 12px; color: var(--text-tertiary); }
+  .timeline-item .tl-time { font-size: 12px; color: var(--text-tertiary); white-space: nowrap; }
+
+  /* --- Records Page --- */
+  .records-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .records-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  /* --- Modal (Record Form) --- */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.2s ease;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: #fff;
+    border-radius: var(--radius-lg);
+    width: 640px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-lg);
+    animation: slideUp 0.2s ease;
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px 0;
+  }
+  .modal-header h2 { font-size: 18px; font-weight: 600; }
+  .modal-header .close-btn {
+    width: 32px; height: 32px;
+    border: none;
+    background: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: var(--text-tertiary);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-header .close-btn:hover { background: #f5f5f5; color: var(--text-primary); }
+  .modal-body { padding: 20px 24px; }
+  .modal-footer {
+    padding: 12px 24px 20px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+  }
+  .form-row {
+    margin-bottom: 18px;
+  }
+  .form-row label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 6px;
+    color: var(--text-primary);
+  }
+  .form-row .required::after {
+    content: ' *';
+    color: var(--error);
+  }
+  .form-row .hint {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    margin-top: 4px;
+  }
+  .form-row .type-selector {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .type-option {
+    padding: 6px 16px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: #fff;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: var(--font);
+    transition: all 0.2s;
+    color: var(--text-secondary);
+  }
+  .type-option:hover { border-color: var(--primary); color: var(--primary); }
+  .type-option.active {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+
+  /* --- Editor Page --- */
+  .editor-layout {
+    display: grid;
+    grid-template-columns: 260px 1fr 300px;
+    gap: 16px;
+    height: calc(100vh - 48px - 48px - 24px); /* topnav + padding */
+    min-height: 600px;
+  }
+  .editor-panel {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .editor-panel .panel-header {
+    padding: 12px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .editor-panel .panel-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+  }
+  .component-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px dashed var(--border);
+    border-radius: 6px;
+    margin-bottom: 8px;
+    cursor: grab;
+    transition: all 0.2s;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+  .component-item:hover {
+    border-color: var(--primary);
+    background: #f0f5ff;
+    color: var(--primary);
+  }
+  .component-item .comp-icon { font-size: 16px; }
+
+  .editor-canvas {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-y: auto;
+    padding: 24px;
+  }
+  .canvas-toolbar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    padding: 8px 12px;
+    background: #fafafa;
+    border-radius: 6px;
+    border: 1px solid #f0f0f0;
+  }
+  .canvas-toolbar .toolbar-btn {
+    padding: 4px 10px;
+    border: 1px solid transparent;
+    background: transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: var(--font);
+    color: var(--text-secondary);
+    transition: all 0.2s;
+  }
+  .canvas-toolbar .toolbar-btn:hover { background: #e6f7ff; color: var(--primary); }
+  .canvas-toolbar .divider {
+    width: 1px;
+    background: var(--border);
+    margin: 0 4px;
+  }
+  .canvas-page {
+    width: 800px;
+    min-height: 1123px;
+    background: #fff;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+    padding: 40px;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .canvas-page .resume-header {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  .canvas-page .resume-header h1 {
+    font-size: 26px;
+    font-weight: 700;
+  }
+  .canvas-page .resume-header .subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+  }
+  .canvas-page .resume-section {
+    margin-bottom: 20px;
+  }
+  .canvas-page .resume-section h2 {
+    font-size: 16px;
+    font-weight: 600;
+    border-bottom: 2px solid var(--primary);
+    padding-bottom: 6px;
+    margin-bottom: 12px;
+  }
+  .canvas-page .resume-item {
+    margin-bottom: 12px;
+  }
+  .canvas-page .resume-item .item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .canvas-page .resume-item .item-title {
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .canvas-page .resume-item .item-date {
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+  .canvas-page .resume-item .item-desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+  }
+  .canvas-page .resume-item .item-desc ul {
+    padding-left: 18px;
+    margin-top: 4px;
+  }
+  .canvas-page .resume-item .item-desc li {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 2px;
+  }
+  .canvas-page .resume-footer {
+    position: absolute;
+    bottom: 40px;
+    left: 40px;
+    right: 40px;
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    border-top: 1px solid #f0f0f0;
+    padding-top: 8px;
+  }
+
+  .editor-property {
+    margin-bottom: 16px;
+  }
+  .editor-property label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+  }
+  .editor-property .input, .editor-property select {
+    width: 100%;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: var(--font);
+    outline: none;
+  }
+  .editor-property select { cursor: pointer; }
+  .editor-property .color-row {
+    display: flex;
+    gap: 8px;
+  }
+  .editor-property .color-row input[type="color"] {
+    width: 36px; height: 32px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 2px;
+  }
+
+  /* --- Templates Page --- */
+  .template-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  .template-card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    transition: all 0.2s;
+    cursor: pointer;
+    position: relative;
+  }
+  .template-card:hover {
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    transform: translateY(-2px);
+  }
+  .template-card .template-thumb {
+    height: 280px;
+    background: #fafafa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+  .template-card .template-thumb .thumb-inner {
+    width: 70%;
+    height: 90%;
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .template-card .template-thumb .thumb-inner .bar {
+    height: 4px;
+    border-radius: 2px;
+    background: #e8e8e8;
+  }
+  .template-card .template-thumb .thumb-inner .bar.fill { background: var(--primary); }
+  .template-card .template-thumb .thumb-inner .bar.fill2 { background: var(--success); }
+  .template-card .template-thumb .thumb-inner .bar.fill3 { background: var(--warning); }
+  .template-card .template-thumb .thumb-inner .bar.w50 { width: 50%; }
+  .template-card .template-thumb .thumb-inner .bar.w60 { width: 60%; }
+  .template-card .template-thumb .thumb-inner .bar.w70 { width: 70%; }
+  .template-card .template-thumb .thumb-inner .bar.w80 { width: 80%; }
+  .template-card .template-thumb .thumb-inner .bar.w90 { width: 90%; }
+  .template-card .template-thumb .thumb-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .template-card:hover .template-thumb .thumb-overlay {
+    opacity: 1;
+  }
+  .template-card .template-thumb .thumb-overlay .btn {
+    background: #fff;
+    color: var(--text-primary);
+  }
+  .template-card .template-info {
+    padding: 16px;
+  }
+  .template-card .template-info h3 {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .template-card .template-info .template-meta {
+    display: flex;
+    gap: 12px;
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+
+  /* --- My Layouts Page --- */
+  .layouts-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .layout-card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+  .layout-card:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  }
+  .layout-card .layout-thumb {
+    height: 200px;
+    background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    color: rgba(0,0,0,0.1);
+  }
+  .layout-card .layout-info {
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .layout-card .layout-info h4 { font-size: 14px; font-weight: 600; }
+  .layout-card .layout-info span { font-size: 12px; color: var(--text-tertiary); }
+
+  /* ===== Responsive ===== */
+  @media (max-width: 1400px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .template-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 1199px) {
+    .sidebar { width: var(--sidebar-collapsed); }
+    .sidebar .logo-text,
+    .sidebar-menu-item span:not(.icon),
+    .sidebar-footer .user-info { display: none; }
+    .sidebar-menu-item { justify-content: center; padding: 12px; }
+    .sidebar-footer { justify-content: center; }
+    .sidebar-logo { justify-content: center; padding: 0; }
+    .main-content { margin-left: var(--sidebar-collapsed); }
+    .editor-layout { grid-template-columns: 1fr; }
+    .dashboard-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 992px) {
+    .main-content { margin-left: 0; padding: 16px; }
+    .sidebar { display: none; }
+    .stats-grid { grid-template-columns: 1fr; }
+    .template-grid { grid-template-columns: 1fr; }
+    .layouts-grid { grid-template-columns: 1fr; }
+    .records-toolbar { flex-direction: column; align-items: stretch; }
+    .filter-bar .input { width: 100%; }
+  }
+
+  /* ===== Scrollbar ===== */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #d9d9d9; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #bfbfbf; }
+
+  /* ===== Modal show/hide toggle for demo ===== */
+  .show-modal .modal-overlay { display: flex; }
+
+  /* ===== Nav links ===== */
+  .nav-link {
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<!-- ========== TOP NAV ========== -->
+<div class="topnav">
+  <span class="badge">设计原型</span>
+  <span class="page-indicator">当前页面：<strong id="currentPageLabel">仪表盘</strong></span>
+  <span style="flex:1"></span>
+  <a class="nav-link active" data-page="dashboard">📊 仪表盘</a>
+  <a class="nav-link" data-page="records">📝 记录管理</a>
+  <a class="nav-link" data-page="editor">✏️ 简历编辑器</a>
+  <a class="nav-link" data-page="templates">🏪 模板市场</a>
+  <a class="nav-link" data-page="login">🔐 登录页</a>
+  <span style="flex:1"></span>
+</div>
+
+<div class="page-container">
+
+<!-- ========== SIDEBAR ========== -->
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">履</div>
+    <span class="logo-text">履历生成器</span>
+  </div>
+  <div class="sidebar-menu">
+    <div class="sidebar-menu-item active nav-link" data-page="dashboard">
+      <span class="icon">📊</span>
+      <span>仪表盘</span>
+    </div>
+    <div class="sidebar-menu-item nav-link" data-page="records">
+      <span class="icon">📝</span>
+      <span>日常记录</span>
+    </div>
+    <div class="sidebar-menu-item nav-link" data-page="editor">
+      <span class="icon">✏️</span>
+      <span>简历编辑器</span>
+    </div>
+    <div class="sidebar-menu-item nav-link" data-page="templates">
+      <span class="icon">🏪</span>
+      <span>模板市场</span>
+    </div>
+    <div class="sidebar-menu-item">
+      <span class="icon">📁</span>
+      <span>我的布局</span>
+    </div>
+  </div>
+  <div class="sidebar-footer">
+    <div class="avatar">陈</div>
+    <div class="user-info">
+      <div class="user-name">陈凯鑫</div>
+      <div class="user-role">管理员</div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== MAIN ========== -->
+<div class="main-content">
+
+  <!-- ===== DASHBOARD ===== -->
+  <div class="page-section active" id="page-dashboard">
+    <div class="page-header">
+      <div>
+        <div class="page-title">仪表盘</div>
+        <div class="page-subtitle">欢迎回来，以下是你的履历概览</div>
+      </div>
+      <button class="btn btn-primary" onclick="showModal('record')">➕ 添加记录</button>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon blue">📄</div>
+        <div>
+          <div class="stat-value">24</div>
+          <div class="stat-label">日常记录</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green">🏷️</div>
+        <div>
+          <div class="stat-value">18</div>
+          <div class="stat-label">技能标签</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon orange">📋</div>
+        <div>
+          <div class="stat-value">5</div>
+          <div class="stat-label">简历布局</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon purple">🏆</div>
+        <div>
+          <div class="stat-value">3</div>
+          <div class="stat-label">本月新增</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dashboard-grid">
+      <div class="card">
+        <div class="card-title">
+          技能词云
+          <a href="#">查看详情 →</a>
+        </div>
+        <div class="wordcloud-placeholder">
+          <span class="word xl">React</span>
+          <span class="word lg">Spring Boot</span>
+          <span class="word md">Java</span>
+          <span class="word xl">Python</span>
+          <span class="word sm">MongoDB</span>
+          <span class="word lg">Redis</span>
+          <span class="word md">Docker</span>
+          <span class="word xs">MySQL</span>
+          <span class="word lg">JavaScript</span>
+          <span class="word md">Vue</span>
+          <span class="word sm">TypeScript</span>
+          <span class="word xl">AI</span>
+          <span class="word md">Git</span>
+          <span class="word sm">Linux</span>
+          <span class="word lg">Spring</span>
+          <span class="word xs">Nginx</span>
+          <span class="word md">Kubernetes</span>
+          <span class="word sm">CSS</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">最近动态</div>
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="tl-content">
+              <div class="tl-title">新增记录：电商秒杀系统设计</div>
+              <div class="tl-desc">类型：项目 · 含3项技能标签</div>
+            </div>
+            <div class="tl-time">2小时前</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot" style="background:var(--success)"></div>
+            <div class="tl-content">
+              <div class="tl-title">导出了简历：实习应聘版</div>
+              <div class="tl-desc">基于"简约科技蓝"模板</div>
+            </div>
+            <div class="tl-time">昨天</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot" style="background:var(--warning)"></div>
+            <div class="tl-content">
+              <div class="tl-title">技能词云已更新</div>
+              <div class="tl-desc">新增 "Rust" "WebAssembly" 等词</div>
+            </div>
+            <div class="tl-time">3天前</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="tl-content">
+              <div class="tl-title">模板市场新上架：金融风控师</div>
+              <div class="tl-desc">由用户「张明」分享</div>
+            </div>
+            <div class="tl-time">5天前</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== RECORDS ===== -->
+  <div class="page-section" id="page-records">
+    <div class="page-header">
+      <div>
+        <div class="page-title">日常记录</div>
+        <div class="page-subtitle">管理你的履历素材，支持分类筛选与批量操作</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-default btn-sm">📥 导入</button>
+        <button class="btn btn-default btn-sm">📤 导出</button>
+        <button class="btn btn-primary" onclick="showModal('record')">➕ 添加记录</button>
+      </div>
+    </div>
+
+    <div class="filter-bar">
+      <input class="input" placeholder="搜索标题或描述..." style="width:280px">
+      <select class="input" style="width:140px">
+        <option>全部类型</option>
+        <option>项目</option>
+        <option>实习</option>
+        <option>竞赛</option>
+        <option>技能</option>
+        <option>证书</option>
+      </select>
+      <select class="input" style="width:140px">
+        <option>全部时间</option>
+        <option>最近一周</option>
+        <option>最近一月</option>
+        <option>自定义</option>
+      </select>
+      <div style="display:flex;gap:6px">
+        <button class="filter-chip active">全部</button>
+        <button class="filter-chip">项目</button>
+        <button class="filter-chip">实习</button>
+        <button class="filter-chip">技能</button>
+      </div>
+    </div>
+
+    <div class="records-list">
+      <!-- Record 1 -->
+      <div class="record-card">
+        <div class="record-type-icon" style="background:#e6f7ff;color:#1890ff">📁</div>
+        <div class="record-content">
+          <div class="record-title">
+            电商秒杀系统设计
+            <span class="tag tag-blue">项目</span>
+            <span style="font-size:12px;color:var(--text-tertiary);font-weight:400">2026.03 - 2026.05</span>
+          </div>
+          <div class="record-desc">基于 Spring Boot + Redis 实现的电商秒杀系统，支持高并发抢购、库存预减、订单异步处理。采用 Redis 分布式锁解决超卖问题，RabbitMQ 实现流量削峰，压测 QPS 达到 8000+。</div>
+          <div class="record-meta">
+            <span>🏷️</span>
+            <span class="tag tag-blue">Spring Boot</span>
+            <span class="tag tag-cyan">Redis</span>
+            <span class="tag tag-purple">RabbitMQ</span>
+            <span class="tag tag-green">Java</span>
+            <span>📎 2 个附件</span>
+          </div>
+        </div>
+        <div class="record-actions">
+          <button class="btn-icon" title="编辑">✏️</button>
+          <button class="btn-icon" title="删除">🗑️</button>
+        </div>
+      </div>
+
+      <!-- Record 2 -->
+      <div class="record-card">
+        <div class="record-type-icon" style="background:#fff7e6;color:#fa8c16">💼</div>
+        <div class="record-content">
+          <div class="record-title">
+            字节跳动后端开发实习
+            <span class="tag tag-orange">实习</span>
+            <span style="font-size:12px;color:var(--text-tertiary);font-weight:400">2025.07 - 2025.12</span>
+          </div>
+          <div class="record-desc">参与抖音商业化平台后端开发，负责广告投放系统的预算控制模块重构。优化预算扣减流程，将接口响应时间从 120ms 降低至 35ms，日均处理请求量 200 万+。</div>
+          <div class="record-meta">
+            <span>🏷️</span>
+            <span class="tag tag-blue">Go</span>
+            <span class="tag tag-cyan">Redis</span>
+            <span class="tag tag-purple">Kafka</span>
+            <span class="tag tag-green">MySQL</span>
+            <span>⭐ 成果：响应时间降低 70%</span>
+          </div>
+        </div>
+        <div class="record-actions">
+          <button class="btn-icon" title="编辑">✏️</button>
+          <button class="btn-icon" title="删除">🗑️</button>
+        </div>
+      </div>
+
+      <!-- Record 3 -->
+      <div class="record-card">
+        <div class="record-type-icon" style="background:#f6ffed;color:#52c41a">🏅</div>
+        <div class="record-content">
+          <div class="record-title">
+            ICPC 亚洲区域赛银牌
+            <span class="tag tag-green">竞赛</span>
+            <span style="font-size:12px;color:var(--text-tertiary);font-weight:400">2025.11</span>
+          </div>
+          <div class="record-desc">作为队长带领团队参加第 48 届 ICPC 亚洲区域赛（南京站），负责算法设计与代码实现，解决 7 题获银牌。擅长图论、动态规划、计算几何方向。</div>
+          <div class="record-meta">
+            <span>🏷️</span>
+            <span class="tag tag-blue">C++</span>
+            <span class="tag tag-purple">算法</span>
+            <span class="tag tag-cyan">数据结构</span>
+          </div>
+        </div>
+        <div class="record-actions">
+          <button class="btn-icon" title="编辑">✏️</button>
+          <button class="btn-icon" title="删除">🗑️</button>
+        </div>
+      </div>
+
+      <!-- Record 4 -->
+      <div class="record-card">
+        <div class="record-type-icon" style="background:#f9f0ff;color:#722ed1">📜</div>
+        <div class="record-content">
+          <div class="record-title">
+            AWS Certified Solutions Architect
+            <span class="tag tag-purple">证书</span>
+            <span style="font-size:12px;color:var(--text-tertiary);font-weight:400">2026.01</span>
+          </div>
+          <div class="record-desc">通过 AWS SAA 认证考试，掌握 AWS 核心服务（EC2、S3、RDS、Lambda、ECS）的架构设计与最佳实践。</div>
+          <div class="record-meta">
+            <span>🏷️</span>
+            <span class="tag tag-blue">AWS</span>
+            <span class="tag tag-cyan">云计算</span>
+            <span>🔗 <a href="#" style="color:var(--primary)">验证链接</a></span>
+          </div>
+        </div>
+        <div class="record-actions">
+          <button class="btn-icon" title="编辑">✏️</button>
+          <button class="btn-icon" title="删除">🗑️</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== EDITOR ===== -->
+  <div class="page-section" id="page-editor">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div>
+        <div class="page-title" style="font-size:20px">简历编辑器</div>
+        <div class="page-subtitle" style="margin-bottom:0">当前模板：简约科技蓝 · 正在编辑「实习应聘版」</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-default btn-sm">💾 保存</button>
+        <button class="btn btn-primary">⬇️ 导出 Word</button>
+      </div>
+    </div>
+
+    <div class="editor-layout">
+      <!-- Left: Component Library -->
+      <div class="editor-panel">
+        <div class="panel-header">
+          <span>🧩 组件库</span>
+          <span style="font-size:12px;color:var(--text-tertiary)">拖入画布</span>
+        </div>
+        <div class="panel-body">
+          <div class="component-item">
+            <span class="comp-icon">📝</span>
+            <span>单行文本</span>
+          </div>
+          <div class="component-item">
+            <span class="comp-icon">📄</span>
+            <span>多行文本</span>
+          </div>
+          <div class="component-item">
+            <span class="comp-icon">🖼️</span>
+            <span>图片框</span>
+          </div>
+          <div class="component-item">
+            <span class="comp-icon">📋</span>
+            <span style="color:var(--primary);font-weight:500">项目经历（数据绑定）</span>
+          </div>
+          <div class="component-item">
+            <span class="comp-icon">🎓</span>
+            <span style="color:var(--primary);font-weight:500">教育经历（数据绑定）</span>
+          </div>
+          <div class="component-item">
+            <span class="comp-icon">💼</span>
+            <span style="color:var(--primary);font-weight:500">实习经历（数据绑定）</span>
+          </div>
+          <div class="component-item">
+            <span class="comp-icon">➖</span>
+            <span>分割线</span>
+          </div>
+          <div class="component-item">
+            <span class="comp-icon">🔝</span>
+            <span>页眉</span>
+          </div>
+          <div class="component-item">
+            <span class="comp-icon">🔟</span>
+            <span>页脚</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Center: Canvas -->
+      <div class="editor-canvas">
+        <div class="canvas-toolbar">
+          <button class="toolbar-btn">🔍 100%</button>
+          <button class="toolbar-btn">−</button>
+          <button class="toolbar-btn">+</button>
+          <span class="divider"></span>
+          <button class="toolbar-btn">↩️ 撤销</button>
+          <button class="toolbar-btn">↪️ 重做</button>
+          <span class="divider"></span>
+          <button class="toolbar-btn">📏 吸附对齐</button>
+          <button class="toolbar-btn">🔲 显示网格</button>
+        </div>
+
+        <div class="canvas-page">
+          <div class="resume-header">
+            <h1>陈凯鑫</h1>
+            <div class="subtitle">📧 chenkaixin@example.com · 📞 138-0000-0000 · 🔗 github.com/chenkx</div>
+          </div>
+
+          <div class="resume-section">
+            <h2>教育经历</h2>
+            <div class="resume-item">
+              <div class="item-header">
+                <span class="item-title">某大学 · 计算机科学与技术 本科</span>
+                <span class="item-date">2022.09 - 2026.06</span>
+              </div>
+              <div class="item-desc">GPA 3.8/4.0 · 校级优秀学生奖学金（2次）·  ACM 实验室核心成员</div>
+            </div>
+          </div>
+
+          <div class="resume-section">
+            <h2>项目经历</h2>
+            <div class="resume-item">
+              <div class="item-header">
+                <span class="item-title">电商秒杀系统设计</span>
+                <span class="item-date">2026.03 - 2026.05</span>
+              </div>
+              <div class="item-desc">
+                <ul>
+                  <li>基于 Spring Boot + Redis 构建高并发秒杀系统，压测 QPS 达 8000+</li>
+                  <li>使用 Redis 分布式锁 + Lua 脚本解决库存超卖问题</li>
+                  <li>引入 RabbitMQ 异步削峰，订单处理吞吐量提升 3 倍</li>
+                </ul>
+              </div>
+            </div>
+            <div class="resume-item">
+              <div class="item-header">
+                <span class="item-title">智能简历生成器（本系统）</span>
+                <span class="item-date">2026.06 - 至今</span>
+              </div>
+              <div class="item-desc">
+                <ul>
+                  <li>前后端分离架构：React + Spring Boot + MongoDB</li>
+                  <li>基于 HanLP 的中文分词技能自动提取</li>
+                  <li>poi-tl 驱动的 Word 简历模板渲染引擎</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="resume-section">
+            <h2>实习经历</h2>
+            <div class="resume-item">
+              <div class="item-header">
+                <span class="item-title">字节跳动 · 后端开发实习生</span>
+                <span class="item-date">2025.07 - 2025.12</span>
+              </div>
+              <div class="item-desc">
+                <ul>
+                  <li>负责广告预算控制模块重构，接口响应时间从 120ms 降至 35ms</li>
+                  <li>日均处理 200 万+ 请求，系统可用性 99.99%</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="resume-section">
+            <h2>技能</h2>
+            <div class="item-desc">
+              <span class="tag tag-blue">Java</span>
+              <span class="tag tag-green">Spring Boot</span>
+              <span class="tag tag-cyan">Redis</span>
+              <span class="tag tag-purple">Python</span>
+              <span class="tag tag-orange">React</span>
+              <span class="tag tag-blue">MySQL</span>
+              <span class="tag tag-green">Docker</span>
+              <span class="tag tag-cyan">Git</span>
+            </div>
+          </div>
+
+          <div class="resume-footer">简历自动生成 · 更新于 2026.06.11</div>
+        </div>
+      </div>
+
+      <!-- Right: Property Panel -->
+      <div class="editor-panel">
+        <div class="panel-header">
+          <span>⚙️ 属性面板</span>
+        </div>
+        <div class="panel-body">
+          <div style="font-size:13px;color:var(--text-tertiary);margin-bottom:16px">选中组件后在此编辑属性</div>
+
+          <div class="editor-property">
+            <label>组件类型</label>
+            <select>
+              <option>项目经历（数据绑定）</option>
+              <option>单行文本</option>
+              <option>多行文本</option>
+            </select>
+          </div>
+
+          <div class="editor-property">
+            <label>数据绑定</label>
+            <select>
+              <option>records[type=project]</option>
+              <option>records[type=internship]</option>
+              <option>records[type=education]</option>
+              <option>user.name</option>
+            </select>
+            <div class="hint" style="font-size:11px;color:var(--text-tertiary);margin-top:4px">绑定后将自动填充用户数据</div>
+          </div>
+
+          <div style="border-top:1px solid #f0f0f0;margin:12px 0"></div>
+
+          <div class="editor-property">
+            <label>标题字体</label>
+            <select>
+              <option>PingFang SC</option>
+              <option>Microsoft YaHei</option>
+              <option>SimSun</option>
+            </select>
+          </div>
+          <div class="editor-property">
+            <label>标题字号</label>
+            <select>
+              <option>16px</option>
+              <option selected>18px</option>
+              <option>20px</option>
+            </select>
+          </div>
+          <div class="editor-property">
+            <label>标题颜色</label>
+            <div class="color-row">
+              <input type="color" value="#1890ff">
+              <input class="input" value="#1890ff" style="flex:1">
+            </div>
+          </div>
+          <div class="editor-property">
+            <label>上下边距</label>
+            <input class="input" value="12px">
+          </div>
+
+          <div style="border-top:1px solid #f0f0f0;margin:12px 0"></div>
+
+          <div class="editor-property">
+            <label>筛选条件</label>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button class="filter-chip active" style="font-size:11px;padding:2px 10px">项目</button>
+              <button class="filter-chip" style="font-size:11px;padding:2px 10px">实习</button>
+              <button class="filter-chip" style="font-size:11px;padding:2px 10px">竞赛</button>
+            </div>
+            <div class="hint" style="font-size:11px;color:var(--text-tertiary);margin-top:4px">只显示选中类型的记录</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TEMPLATES ===== -->
+  <div class="page-section" id="page-templates">
+    <div class="page-header">
+      <div>
+        <div class="page-title">模板市场</div>
+        <div class="page-subtitle">选择模板开始制作简历，或分享你的自定义模板</div>
+      </div>
+      <button class="btn btn-default">📤 分享模板</button>
+    </div>
+
+    <div class="filter-bar">
+      <span style="font-size:13px;font-weight:500;color:var(--text-secondary)">行业：</span>
+      <button class="filter-chip active">全部</button>
+      <button class="filter-chip">互联网</button>
+      <button class="filter-chip">金融</button>
+      <button class="filter-chip">设计</button>
+      <button class="filter-chip">教育</button>
+      <span style="margin-left:12px;font-size:13px;font-weight:500;color:var(--text-secondary)">风格：</span>
+      <button class="filter-chip active">全部</button>
+      <button class="filter-chip">简约</button>
+      <button class="filter-chip">现代</button>
+      <button class="filter-chip">创意</button>
+    </div>
+
+    <div class="template-grid">
+      <!-- Template 1 -->
+      <div class="template-card">
+        <div class="template-thumb">
+          <div class="thumb-inner" style="gap:8px">
+            <div class="bar w80" style="height:16px;background:var(--primary);border-radius:3px;margin:0 auto;width:120px"></div>
+            <div class="bar w60" style="height:8px;margin:0 auto"></div>
+            <div style="display:flex;gap:12px;margin-top:12px">
+              <div style="width:60px;height:60px;border-radius:50%;background:#e8e8e8;flex-shrink:0"></div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:4px">
+                <div class="bar w90 fill"></div>
+                <div class="bar w70"></div>
+                <div class="bar w80"></div>
+              </div>
+            </div>
+            <div style="border-top:1px solid var(--primary);margin:8px 0"></div>
+            <div class="bar w90 fill2" style="height:6px"></div>
+            <div class="bar w80"></div>
+            <div class="bar w70"></div>
+            <div class="bar w60"></div>
+          </div>
+          <div class="thumb-overlay">
+            <button class="btn btn-sm btn-primary">👁️ 预览</button>
+            <button class="btn btn-sm btn-default">📋 使用</button>
+          </div>
+        </div>
+        <div class="template-info">
+          <h3>简约科技蓝</h3>
+          <div class="template-meta">
+            <span>🏷️ 互联网 · 简约</span>
+            <span>👥 1.2k 使用</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Template 2 -->
+      <div class="template-card">
+        <div class="template-thumb">
+          <div class="thumb-inner" style="gap:6px;background:#fafafa">
+            <div style="display:flex;gap:8px;margin-bottom:8px">
+              <div style="flex:1">
+                <div class="bar w80" style="height:12px;background:#333;border-radius:2px"></div>
+                <div class="bar w50" style="height:6px;margin-top:4px"></div>
+              </div>
+              <div style="width:40px;height:40px;border-radius:4px;background:#333"></div>
+            </div>
+            <div style="border-left:2px solid #333;padding-left:8px;display:flex;flex-direction:column;gap:4px">
+              <div class="bar w90 fill3"></div>
+              <div class="bar w80"></div>
+              <div class="bar w70"></div>
+            </div>
+            <div style="border-left:2px solid #333;padding-left:8px;display:flex;flex-direction:column;gap:4px;margin-top:4px">
+              <div class="bar w85 fill"></div>
+              <div class="bar w75"></div>
+            </div>
+          </div>
+          <div class="thumb-overlay">
+            <button class="btn btn-sm btn-primary">👁️ 预览</button>
+            <button class="btn btn-sm btn-default">📋 使用</button>
+          </div>
+        </div>
+        <div class="template-info">
+          <h3>极简黑金</h3>
+          <div class="template-meta">
+            <span>🏷️ 金融 · 简约</span>
+            <span>👥 856 使用</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Template 3 -->
+      <div class="template-card">
+        <div class="template-thumb">
+          <div class="thumb-inner" style="gap:6px;background:linear-gradient(135deg,#667eea,#764ba2);padding:16px">
+            <div class="bar w70" style="height:14px;background:rgba(255,255,255,0.9);border-radius:2px;margin:0 auto"></div>
+            <div class="bar w50" style="height:6px;background:rgba(255,255,255,0.5);margin:0 auto"></div>
+            <div style="display:flex;gap:8px;margin-top:12px">
+              <div style="flex:1;display:flex;flex-direction:column;gap:4px">
+                <div class="bar w90" style="background:rgba(255,255,255,0.8)"></div>
+                <div class="bar w70" style="background:rgba(255,255,255,0.5)"></div>
+                <div class="bar w80" style="background:rgba(255,255,255,0.6)"></div>
+              </div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:4px">
+                <div class="bar w85" style="background:rgba(255,255,255,0.7)"></div>
+                <div class="bar w60" style="background:rgba(255,255,255,0.4)"></div>
+              </div>
+            </div>
+          </div>
+          <div class="thumb-overlay">
+            <button class="btn btn-sm btn-primary">👁️ 预览</button>
+            <button class="btn btn-sm btn-default">📋 使用</button>
+          </div>
+        </div>
+        <div class="template-info">
+          <h3>创意渐变</h3>
+          <div class="template-meta">
+            <span>🏷️ 设计 · 创意</span>
+            <span>👥 634 使用</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Template 4 -->
+      <div class="template-card">
+        <div class="template-thumb">
+          <div class="thumb-inner" style="gap:4px">
+            <div style="display:flex;gap:8px;margin-bottom:4px">
+              <div style="flex:1">
+                <div class="bar w90 fill" style="height:10px"></div>
+                <div class="bar w60" style="height:5px;margin-top:3px"></div>
+              </div>
+              <div class="bar w40" style="height:10px"></div>
+            </div>
+            <div style="border-bottom:1px solid #e8e8e8;margin:4px 0"></div>
+            <div class="bar w70 fill2"></div>
+            <div class="bar w80"></div>
+            <div class="bar w60"></div>
+            <div style="border-bottom:1px solid #e8e8e8;margin:4px 0"></div>
+            <div class="bar w90 fill3"></div>
+            <div class="bar w70"></div>
+          </div>
+          <div class="thumb-overlay">
+            <button class="btn btn-sm btn-primary">👁️ 预览</button>
+            <button class="btn btn-sm btn-default">📋 使用</button>
+          </div>
+        </div>
+        <div class="template-info">
+          <h3>学术简洁</h3>
+          <div class="template-meta">
+            <span>🏷️ 教育 · 简约</span>
+            <span>👥 2.1k 使用</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Template 5 -->
+      <div class="template-card">
+        <div class="template-thumb">
+          <div class="thumb-inner" style="gap:5px">
+            <div style="display:flex;gap:10px;margin-bottom:6px">
+              <div style="width:50px;height:50px;border-radius:8px;background:var(--success);flex-shrink:0"></div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:3px">
+                <div class="bar w95 fill" style="height:8px"></div>
+                <div class="bar w75"></div>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <div style="flex:1;display:flex;flex-direction:column;gap:3px">
+                <div class="bar w80" style="height:5px"></div>
+                <div class="bar w60" style="height:5px"></div>
+              </div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:3px">
+                <div class="bar w70" style="height:5px"></div>
+                <div class="bar w50" style="height:5px"></div>
+              </div>
+            </div>
+          </div>
+          <div class="thumb-overlay">
+            <button class="btn btn-sm btn-primary">👁️ 预览</button>
+            <button class="btn btn-sm btn-default">📋 使用</button>
+          </div>
+        </div>
+        <div class="template-info">
+          <h3>现代双栏</h3>
+          <div class="template-meta">
+            <span>🏷️ 互联网 · 现代</span>
+            <span>👥 1.5k 使用</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Template 6 -->
+      <div class="template-card">
+        <div class="template-thumb">
+          <div class="thumb-inner" style="gap:6px">
+            <div style="text-align:center">
+              <div class="bar w60" style="height:14px;margin:0 auto;background:var(--primary)"></div>
+              <div class="bar w40" style="height:6px;margin:4px auto 0"></div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:6px">
+              <div style="width:16px;background:var(--primary);border-radius:2px"></div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:3px">
+                <div class="bar w90 fill"></div>
+                <div class="bar w70"></div>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <div style="width:16px;background:var(--primary);border-radius:2px"></div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:3px">
+                <div class="bar w85 fill2"></div>
+                <div class="bar w65"></div>
+              </div>
+            </div>
+          </div>
+          <div class="thumb-overlay">
+            <button class="btn btn-sm btn-primary">👁️ 预览</button>
+            <button class="btn btn-sm btn-default">📋 使用</button>
+          </div>
+        </div>
+        <div class="template-info">
+          <h3>侧栏经典</h3>
+          <div class="template-meta">
+            <span>🏷️ 通用 · 简约</span>
+            <span>👥 3.2k 使用</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== LOGIN (full page) ===== -->
+  <div class="page-section" id="page-login">
+    <div class="login-wrapper">
+      <div class="login-card">
+        <div class="login-logo">
+          <div class="logo-icon-big">履</div>
+          <h1>履历沉淀与简历生成器</h1>
+          <p>记录 · 分析 · 一键生成专业简历</p>
+        </div>
+        <div class="form-group">
+          <label>邮箱</label>
+          <input class="input" type="email" placeholder="请输入邮箱地址" value="chen@example.com">
+        </div>
+        <div class="form-group">
+          <label>密码</label>
+          <input class="input" type="password" placeholder="请输入密码" value="········">
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+          <label style="font-size:13px;color:var(--text-tertiary);display:flex;align-items:center;gap:6px">
+            <input type="checkbox" checked> 记住登录
+          </label>
+          <a href="#" style="font-size:13px;color:var(--primary);text-decoration:none">忘记密码？</a>
+        </div>
+        <button class="btn btn-primary" onclick="alert('登录成功！(设计原型演示)')">登 录</button>
+        <div class="login-footer">
+          还没有账号？<a href="#">立即注册</a>
+        </div>
+        <div class="divider">其他登录方式</div>
+        <div style="display:flex;gap:12px">
+          <button style="flex:1;padding:10px;border:1px solid var(--border);border-radius:var(--radius);background:#fff;cursor:pointer;font-size:14px">🔵 微信</button>
+          <button style="flex:1;padding:10px;border:1px solid var(--border);border-radius:var(--radius);background:#fff;cursor:pointer;font-size:14px">🟢 支付宝</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main-content -->
+</div><!-- /page-container -->
+
+<!-- ===== MODAL (Record Form) ===== -->
+<div class="modal-overlay" id="recordModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>添加日常记录</h2>
+      <button class="close-btn" onclick="hideModal('record')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <label class="required">记录标题</label>
+        <input class="input" placeholder="例如：电商秒杀系统设计">
+      </div>
+      <div class="form-row">
+        <label class="required">记录类型</label>
+        <div class="type-selector">
+          <button class="type-option active">📁 项目</button>
+          <button class="type-option">💼 实习</button>
+          <button class="type-option">🏅 竞赛</button>
+          <button class="type-option">📜 技能</button>
+          <button class="type-option">🎓 证书</button>
+          <button class="type-option">📌 其他</button>
+        </div>
+      </div>
+      <div class="form-row" style="display:flex;gap:12px">
+        <div style="flex:1">
+          <label>开始时间</label>
+          <input class="input" type="date" value="2026-03-01">
+        </div>
+        <div style="flex:1">
+          <label>结束时间</label>
+          <input class="input" type="date" value="2026-05-30">
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="required">详细描述</label>
+        <textarea class="input" rows="5" placeholder="请详细描述你的经历，建议使用 STAR 法则（情境-任务-行动-结果）并尽量量化成果...&#10;&#10;💡 提示：输入'负责了...'等被动句式时，系统将建议使用 STAR 法则改写。"></textarea>
+        <div class="hint">💡 支持 Markdown 格式（粗体、列表、链接），系统将自动提取技能关键词</div>
+      </div>
+      <div class="form-row">
+        <label>成果列表</label>
+        <div style="display:flex;gap:8px;margin-bottom:6px">
+          <input class="input" placeholder="例如：日活提升20%" style="flex:1">
+          <button class="btn-icon" style="border-color:var(--primary);color:var(--primary)">＋</button>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <span class="tag tag-green" style="padding:4px 10px">✅ QPS 提升至 8000+ ✕</span>
+          <span class="tag tag-green" style="padding:4px 10px">✅ 响应时间降低 70% ✕</span>
+        </div>
+      </div>
+      <div class="form-row">
+        <label>技能标签</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <input class="input" placeholder="输入技能后回车添加" style="flex:1">
+        </div>
+        <div class="hint">已识别历史高频词：<a href="#" style="color:var(--primary)">React</a> <a href="#" style="color:var(--primary)">Spring Boot</a> <a href="#" style="color:var(--primary)">Redis</a> <a href="#" style="color:var(--primary)">Python</a></div>
+      </div>
+      <div class="form-row">
+        <label>关联链接</label>
+        <input class="input" placeholder="GitHub 仓库 / 证书验证链接">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="hideModal('record')">取消</button>
+      <button class="btn btn-default">💾 存为草稿</button>
+      <button class="btn btn-primary" onclick="hideModal('record')">保存记录</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ===== Page Navigation =====
+  const navLinks = document.querySelectorAll('.nav-link');
+  const sections = {
+    'dashboard': document.getElementById('page-dashboard'),
+    'records': document.getElementById('page-records'),
+    'editor': document.getElementById('page-editor'),
+    'templates': document.getElementById('page-templates'),
+    'login': document.getElementById('page-login'),
+  };
+  const labels = {
+    'dashboard': '仪表盘',
+    'records': '记录管理',
+    'editor': '简历编辑器',
+    'templates': '模板市场',
+    'login': '登录页',
+  };
+
+  navLinks.forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      const page = this.dataset.page;
+      if (!page || !sections[page]) return;
+
+      // Update nav
+      navLinks.forEach(l => l.classList.remove('active'));
+      this.classList.add('active');
+
+      // Update sections
+      Object.entries(sections).forEach(([key, el]) => {
+        el.classList.toggle('active', key === page);
+      });
+
+      // Update label
+      document.getElementById('currentPageLabel').textContent = labels[page] || page;
+
+      // Scroll to top
+      window.scrollTo({ top: 0 });
+
+      // Special: login page sidebar highlight
+      if (page === 'login') {
+        document.querySelectorAll('.sidebar-menu-item').forEach(item => item.classList.remove('active'));
+      } else {
+        const sidebarItem = document.querySelector(`.sidebar-menu-item[data-page="${page}"]`);
+        if (sidebarItem) {
+          document.querySelectorAll('.sidebar-menu-item').forEach(item => item.classList.remove('active'));
+          sidebarItem.classList.add('active');
+        }
+      }
+    });
+  });
+
+  // ===== Modal =====
+  function showModal(type) {
+    if (type === 'record') {
+      document.getElementById('recordModal').classList.add('show');
+    }
+  }
+  function hideModal(type) {
+    if (type === 'record') {
+      document.getElementById('recordModal').classList.remove('show');
+    }
+  }
+  // Close on overlay click
+  document.getElementById('recordModal').addEventListener('click', function(e) {
+    if (e.target === this) hideModal('record');
+  });
+
+  // ===== Type selector in modal =====
+  document.querySelectorAll('.type-option').forEach(btn => {
+    btn.addEventListener('click', function() {
+      this.parentElement.querySelectorAll('.type-option').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+
+  // ===== Filter chips =====
+  document.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.addEventListener('click', function() {
+      this.classList.toggle('active');
+    });
+  });
+
+  console.log('✅ UI Design Prototype loaded. Click nav links to switch pages.');
+</script>
+
+</body>
+</html>
