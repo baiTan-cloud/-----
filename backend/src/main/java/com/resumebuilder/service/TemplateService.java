@@ -2,6 +2,7 @@ package com.resumebuilder.service;
 
 import com.resumebuilder.entity.ResumeLayout;
 import com.resumebuilder.entity.Template;
+import com.resumebuilder.entity.TemplateSection;
 import com.resumebuilder.repository.ResumeLayoutRepository;
 import com.resumebuilder.repository.TemplateRepository;
 import lombok.RequiredArgsConstructor;
@@ -30,17 +31,37 @@ public class TemplateService {
                 .orElseThrow(() -> new RuntimeException("模板不存在"));
     }
 
+    public Template createTemplate(Template template) {
+        template.setUsageCount(0);
+        template.setCreatedAt(new Date());
+        return templateRepository.save(template);
+    }
+
+    public Template updateTemplate(String templateId, Template updates) {
+        Template existing = getTemplate(templateId);
+        if (updates.getName() != null) existing.setName(updates.getName());
+        if (updates.getSections() != null) existing.setSections(updates.getSections());
+        if (updates.getTags() != null) existing.setTags(updates.getTags());
+        if (updates.getWordTemplateKey() != null) existing.setWordTemplateKey(updates.getWordTemplateKey());
+        if (updates.getThumbnailUrl() != null) existing.setThumbnailUrl(updates.getThumbnailUrl());
+        return templateRepository.save(existing);
+    }
+
+    public void deleteTemplate(String templateId) {
+        templateRepository.deleteById(templateId);
+    }
+
     public ResumeLayout useTemplate(String userId, String templateId) {
         Template template = getTemplate(templateId);
 
-        // 复制模板布局到用户布局
+        // 复制模板布局到用户布局（兼容旧 Puck 模式）
         ResumeLayout layout = layoutService.saveLayout(
                 userId,
                 template.getName() + " 副本",
                 template.getLayoutData()
         );
         layout.setTemplateId(templateId);
-        layout = layoutRepository.save(layout); // ⬅️ 保存 templateId
+        layout = layoutRepository.save(layout);
 
         // 增加使用计数
         template.setUsageCount(template.getUsageCount() + 1);

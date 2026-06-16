@@ -28,6 +28,28 @@ public class TemplateController {
         return ApiResponse.success(templateService.getTemplate(id));
     }
 
+    /** 创建新模板（含 sections） */
+    @PostMapping
+    public ApiResponse<Template> createTemplate(@RequestBody Template template) {
+        Template saved = templateService.createTemplate(template);
+        return ApiResponse.success("模板已创建", saved);
+    }
+
+    /** 更新模板（含 sections） */
+    @PutMapping("/{id}")
+    public ApiResponse<Template> updateTemplate(@PathVariable String id,
+                                                 @RequestBody Template template) {
+        Template saved = templateService.updateTemplate(id, template);
+        return ApiResponse.success("模板已更新", saved);
+    }
+
+    /** 删除模板 */
+    @DeleteMapping("/{id}")
+    public ApiResponse<Void> deleteTemplate(@PathVariable String id) {
+        templateService.deleteTemplate(id);
+        return ApiResponse.success("已删除", null);
+    }
+
     @PostMapping("/{id}/use")
     public ApiResponse<ResumeLayout> useTemplate(Authentication authentication,
                                                   @PathVariable String id) {

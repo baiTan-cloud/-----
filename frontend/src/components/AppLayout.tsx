@@ -7,6 +7,7 @@ import {
   EditOutlined,
   AppstoreOutlined,
   FolderOutlined,
+  ToolOutlined,
   UserOutlined,
   LogoutOutlined,
   MenuFoldOutlined,
@@ -19,7 +20,8 @@ const { Header, Sider, Content } = Layout;
 const menuItems = [
   { key: '/dashboard', icon: <DashboardOutlined />, label: '仪表盘' },
   { key: '/records', icon: <FileTextOutlined />, label: '日常记录' },
-  { key: '/editor', icon: <EditOutlined />, label: '简历编辑器' },
+  { key: '/template-editor', icon: <ToolOutlined />, label: '模板编辑器' },
+  { key: '/editor', icon: <EditOutlined />, label: '简历编辑器(旧)' },
   { key: '/templates', icon: <AppstoreOutlined />, label: '模板市场' },
   { key: '/my-layouts', icon: <FolderOutlined />, label: '我的布局' },
 ];

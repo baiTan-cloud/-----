@@ -1,53 +1,79 @@
-import type { Config } from '@puckeditor/core';
+import type { Config, Field } from '@puckeditor/core';
 import React from 'react';
 
 /**
  * Puck 组件类型声明
- * 每个 key 是一种组件，value 是它的 props 类型
  */
 export type ResumeProps = {
   HeadingBlock: {
     text: string;
     fontSize?: number;
-    bold?: boolean;
+    bold?: 'yes' | 'no';
     color?: string;
+    bgColor?: string;
     textAlign?: 'left' | 'center' | 'right';
+    letterSpacing?: number;
+    paddingY?: number;
     binding?: string;
   };
   TextBlock: {
     text: string;
     fontSize?: number;
     color?: string;
+    lineHeight?: number;
     textAlign?: 'left' | 'center' | 'right';
     binding?: string;
   };
   ExperienceList: {
     title: string;
     fontSize?: number;
-    bold?: boolean;
+    bold?: 'yes' | 'no';
     color?: string;
     listType: string;
+    showDivider?: 'yes' | 'no';
     binding: string;
   };
-  Divider: Record<string, never>;
   ImageBlock: {
     imageUrl?: string;
+    width?: number;
+    borderRadius?: number;
     textAlign?: 'left' | 'center' | 'right';
   };
 };
 
-/** 数据绑定选项（所有组件共享） */
+/** 颜色选择器自定义字段 */
+function ColorField({ name, value, onChange }: { name: string; value?: string; onChange: (v: string) => void }) {
+  return (
+    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+      <input
+        type="color"
+        value={value || '#000000'}
+        onChange={(e) => onChange(e.target.value)}
+        style={{ width: 36, height: 36, padding: 0, border: '1px solid #d9d9d9', borderRadius: 4, cursor: 'pointer' }}
+      />
+      <input
+        type="text"
+        value={value || ''}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="#000000"
+        style={{ flex: 1, height: 32, border: '1px solid #d9d9d9', borderRadius: 6, padding: '0 8px', fontSize: 13 }}
+      />
+    </div>
+  );
+}
+
+/** 数据绑定选项 */
 const bindingOptions = [
-  { label: '不绑定（静态）', value: '' },
-  { label: '用户姓名 user.name', value: 'user.name' },
-  { label: '用户邮箱 user.email', value: 'user.email' },
-  { label: '📁 项目经历 records[type=project]', value: 'records[type=project]' },
-  { label: '💼 实习经历 records[type=internship]', value: 'records[type=internship]' },
-  { label: '🎓 教育经历 records[type=education]', value: 'records[type=education]' },
-  { label: '🏅 竞赛经历 records[type=competition]', value: 'records[type=competition]' },
-  { label: '🛠 技能清单 records[type=skill]', value: 'records[type=skill]' },
-  { label: '📜 证书 records[type=certification]', value: 'records[type=certification]' },
-  { label: '其他 records[type=other]', value: 'records[type=other]' },
+  { label: '不绑定（静态）', value: 'none' },
+  { label: '用户姓名', value: 'user.name' },
+  { label: '用户邮箱', value: 'user.email' },
+  { label: '📁 项目经历', value: 'records[type=project]' },
+  { label: '💼 实习经历', value: 'records[type=internship]' },
+  { label: '🎓 教育经历', value: 'records[type=education]' },
+  { label: '🏅 竞赛经历', value: 'records[type=competition]' },
+  { label: '🛠 技能清单', value: 'records[type=skill]' },
+  { label: '📜 证书', value: 'records[type=certification]' },
+  { label: '其他', value: 'records[type=other]' },
 ];
 
 /** 列表类型选项 */
@@ -73,11 +99,20 @@ export const config: Config<ResumeProps> = {
           type: 'radio',
           label: '加粗',
           options: [
-            { label: '是', value: true },
-            { label: '否', value: false },
+            { label: '是', value: 'yes' },
+            { label: '否', value: 'no' },
           ],
         },
-        color: { type: 'text', label: '颜色' },
+        color: {
+          type: 'custom',
+          label: '文字颜色',
+          render: ColorField,
+        },
+        bgColor: {
+          type: 'custom',
+          label: '背景颜色',
+          render: ColorField,
+        },
         textAlign: {
           type: 'radio',
           label: '对齐',
@@ -87,28 +122,40 @@ export const config: Config<ResumeProps> = {
             { label: '右', value: 'right' },
           ],
         },
+        letterSpacing: { type: 'number', label: '字间距', min: 0, max: 20 },
+        paddingY: { type: 'number', label: '上下边距', min: 0, max: 60 },
         binding: { type: 'select', label: '数据绑定', options: bindingOptions },
       },
       defaultProps: {
         text: '姓名',
         fontSize: 26,
-        bold: true,
+        bold: 'yes',
         color: '#262626',
+        bgColor: 'transparent',
         textAlign: 'center',
+        letterSpacing: 0,
+        paddingY: 12,
         binding: 'user.name',
       },
-      render: ({ text, fontSize, bold, color, textAlign, binding }) => (
-        <div style={{ textAlign: textAlign || 'center', padding: '12px 16px' }}>
+      render: ({ text, fontSize, bold, color, bgColor, textAlign, letterSpacing, paddingY, binding }) => (
+        <div
+          style={{
+            textAlign: textAlign || 'center',
+            padding: `${paddingY || 12}px 16px`,
+            background: bgColor && bgColor !== 'transparent' ? bgColor : 'transparent',
+          }}
+        >
           <span
             style={{
               fontSize: fontSize || 26,
-              fontWeight: bold ? 700 : 400,
+              fontWeight: bold === 'yes' ? 700 : 400,
               color: color || '#262626',
+              letterSpacing: letterSpacing || 0,
             }}
           >
             {text}
           </span>
-          {binding && (
+          {binding && binding !== 'none' && (
             <span
               style={{
                 marginLeft: 8,
@@ -132,7 +179,12 @@ export const config: Config<ResumeProps> = {
       fields: {
         text: { type: 'textarea', label: '文本内容' },
         fontSize: { type: 'number', label: '字号', min: 8, max: 72 },
-        color: { type: 'text', label: '颜色' },
+        color: {
+          type: 'custom',
+          label: '文字颜色',
+          render: ColorField,
+        },
+        lineHeight: { type: 'number', label: '行高', min: 1, max: 3, step: 0.1 },
         textAlign: {
           type: 'radio',
           label: '对齐',
@@ -148,22 +200,24 @@ export const config: Config<ResumeProps> = {
         text: '请输入文本内容',
         fontSize: 12,
         color: '#595959',
+        lineHeight: 1.6,
         textAlign: 'left',
-        binding: '',
+        binding: 'none',
       },
-      render: ({ text, fontSize, color, textAlign, binding }) => (
+      render: ({ text, fontSize, color, lineHeight, textAlign, binding }) => (
         <div style={{ textAlign: textAlign || 'left', padding: '8px 16px' }}>
           <p
             style={{
               fontSize: fontSize || 12,
               color: color || '#595959',
+              lineHeight: lineHeight || 1.6,
               margin: 0,
               whiteSpace: 'pre-wrap',
             }}
           >
             {text}
           </p>
-          {binding && (
+          {binding && binding !== 'none' && (
             <span
               style={{
                 fontSize: 10,
@@ -190,39 +244,52 @@ export const config: Config<ResumeProps> = {
           type: 'radio',
           label: '加粗',
           options: [
-            { label: '是', value: true },
-            { label: '否', value: false },
+            { label: '是', value: 'yes' },
+            { label: '否', value: 'no' },
           ],
         },
-        color: { type: 'text', label: '标题颜色' },
+        color: {
+          type: 'custom',
+          label: '标题颜色',
+          render: ColorField,
+        },
         listType: {
           type: 'select',
           label: '记录类型',
           options: listTypeOptions,
         },
+        showDivider: {
+          type: 'radio',
+          label: '显示分割线',
+          options: [
+            { label: '显示', value: 'yes' },
+            { label: '隐藏', value: 'no' },
+          ],
+        },
         binding: {
           type: 'select',
           label: '数据绑定',
-          options: bindingOptions.filter((o) => o.value.startsWith('records') || o.value === ''),
+          options: bindingOptions.filter((o) => o.value.startsWith('records') || o.value === 'none'),
         },
       },
       defaultProps: {
         title: '经历标题',
         fontSize: 16,
-        bold: true,
+        bold: 'yes',
         color: '#1890ff',
         listType: 'project',
+        showDivider: 'yes',
         binding: 'records[type=project]',
       },
-      render: ({ title, fontSize, bold, color, listType, binding }) => (
+      render: ({ title, fontSize, bold, color, listType, showDivider, binding }) => (
         <div style={{ padding: '8px 16px' }}>
           <div
             style={{
               fontSize: fontSize || 16,
-              fontWeight: bold ? 700 : 400,
+              fontWeight: bold === 'yes' ? 700 : 400,
               color: color || '#1890ff',
-              borderBottom: `2px solid ${color || '#1890ff'}`,
-              paddingBottom: 4,
+              borderBottom: showDivider === 'yes' ? `2px solid ${color || '#1890ff'}` : 'none',
+              paddingBottom: showDivider === 'yes' ? 4 : 0,
               marginBottom: 8,
             }}
           >
@@ -232,35 +299,19 @@ export const config: Config<ResumeProps> = {
             <div style={{ fontWeight: 600, marginBottom: 4 }}>示例项目标题（2024.01 - 2024.06）</div>
             <div>项目描述将在导出时从日常记录自动填充...</div>
           </div>
-          <span
-            style={{
-              fontSize: 10,
-              color: '#1890ff',
-              background: '#e6f7ff',
-              padding: '1px 6px',
-              borderRadius: 4,
-            }}
-          >
-            {binding || '未绑定数据'}
-          </span>
-        </div>
-      ),
-    },
-
-    // ========== 分割线 ==========
-    Divider: {
-      label: '分割线',
-      fields: {},
-      defaultProps: {},
-      render: () => (
-        <div style={{ padding: '8px 16px' }}>
-          <div
-            style={{
-              width: '100%',
-              height: 1,
-              background: '#d9d9d9',
-            }}
-          />
+          {binding && binding !== 'none' && (
+            <span
+              style={{
+                fontSize: 10,
+                color: '#1890ff',
+                background: '#e6f7ff',
+                padding: '1px 6px',
+                borderRadius: 4,
+              }}
+            >
+              {binding}
+            </span>
+          )}
         </div>
       ),
     },
@@ -269,7 +320,9 @@ export const config: Config<ResumeProps> = {
     ImageBlock: {
       label: '图片',
       fields: {
-        imageUrl: { type: 'text', label: '图片地址' },
+        imageUrl: { type: 'text', label: '图片地址', placeholder: 'https://...' },
+        width: { type: 'number', label: '宽度', min: 20, max: 800 },
+        borderRadius: { type: 'number', label: '圆角', min: 0, max: 50 },
         textAlign: {
           type: 'radio',
           label: '对齐',
@@ -282,15 +335,22 @@ export const config: Config<ResumeProps> = {
       },
       defaultProps: {
         imageUrl: '',
+        width: 200,
+        borderRadius: 0,
         textAlign: 'center',
       },
-      render: ({ imageUrl, textAlign }) => (
+      render: ({ imageUrl, width, borderRadius, textAlign }) => (
         <div style={{ textAlign: textAlign || 'center', padding: '12px 16px' }}>
           {imageUrl ? (
             <img
               src={imageUrl}
               alt=""
-              style={{ maxWidth: '100%', maxHeight: 200, objectFit: 'contain' }}
+              style={{
+                maxWidth: width || 200,
+                maxHeight: 200,
+                borderRadius: borderRadius || 0,
+                objectFit: 'contain',
+              }}
             />
           ) : (
             <div
@@ -306,7 +366,7 @@ export const config: Config<ResumeProps> = {
                 fontSize: 12,
               }}
             >
-              🖼️ 点击属性面板输入图片地址
+              🖼️ 在属性面板输入图片地址
             </div>
           )}
         </div>

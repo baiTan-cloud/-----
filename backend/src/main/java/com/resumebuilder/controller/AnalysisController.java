@@ -23,4 +23,10 @@ public class AnalysisController {
         Map<String, Integer> frequency = analysisService.analyzeSkillFrequency(userId);
         return ApiResponse.success(frequency);
     }
+
+    @GetMapping("/stats")
+    public ApiResponse<Map<String, Object>> getStats(Authentication authentication) {
+        String userId = authentication.getName();
+        return ApiResponse.success(analysisService.getStats(userId));
+    }
 }

@@ -11,7 +11,7 @@ import {
   Empty,
   Space,
 } from 'antd';
-import { UploadOutlined, EyeOutlined } from '@ant-design/icons';
+import { PlusOutlined, EyeOutlined, EditOutlined, ToolOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { templatesApi, Template } from '../api/layouts';
 
@@ -69,8 +69,11 @@ const TemplatesPage: React.FC = () => {
             {templates.length} 个可用模板 · 选择后即可在编辑器中自定义
           </div>
         </div>
-        <Button icon={<UploadOutlined />} onClick={() => navigate('/editor')}>
-          从零创建
+        <Button icon={<ToolOutlined />} onClick={() => navigate('/template-editor')}>
+           设计模板
+        </Button>
+        <Button icon={<PlusOutlined />} onClick={() => navigate('/editor')}>
+           从零创建布局 (旧)
         </Button>
       </div>
 
@@ -84,6 +87,12 @@ const TemplatesPage: React.FC = () => {
             <Col key={tpl.id} xs={24} sm={12} lg={8}>
               <Card
                 hoverable
+                actions={tpl.sections?.length ? [
+                  <EditOutlined key="edit" onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/template-editor?id=${tpl.id}`);
+                  }} />,
+                ] : undefined}
                 cover={
                   <div
                     style={{
@@ -127,7 +136,7 @@ const TemplatesPage: React.FC = () => {
                     </div>
                   }
                 />
-                <Space style={{ marginTop: 12, width: '100%' }}>
+                <Space style={{ marginTop: 12, width: '100%' }} direction="vertical">
                   <Button
                     type="primary"
                     block
@@ -135,8 +144,21 @@ const TemplatesPage: React.FC = () => {
                     onClick={() => handleUseTemplate(tpl)}
                     loading={usingId === tpl.id}
                   >
-                    使用此模板
+                    {tpl.sections?.length ? '使用此模板' : '使用此布局 (旧)'}
                   </Button>
+                  {tpl.sections?.length ? (
+                    <Button
+                      block
+                      size="small"
+                      icon={<EditOutlined />}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/template-editor?id=${tpl.id}`);
+                      }}
+                    >
+                      编辑模板
+                    </Button>
+                  ) : null}
                 </Space>
               </Card>
             </Col>

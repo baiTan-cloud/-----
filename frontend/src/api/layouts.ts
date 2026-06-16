@@ -1,7 +1,7 @@
 import request from './request';
 
 /**
- * Puck 原生数据格式
+ * Puck 原生数据格式（旧版，即将废弃）
  */
 export interface PuckData {
   root: {
@@ -14,9 +14,6 @@ export interface PuckData {
   }>;
 }
 
-/**
- * 布局数据（后端存储格式）
- */
 export interface LayoutData {
   puckData?: PuckData;
 }
@@ -32,16 +29,44 @@ export interface ResumeLayout {
   updatedAt: string;
 }
 
+// =================== 新版模板模型 ===================
+
+/** 模板节定义 */
+export interface TemplateSection {
+  id: string;
+  type: 'personal' | 'list';
+  label: string;
+  dataBinding?: string;           // personal: user.name | list: project/education/...
+
+  // 文案模板
+  contentTemplate?: string;       // personal 节使用
+  titleTemplate?: string;         // list 节使用：节标题
+  itemTemplate?: string;          // list 节使用：每条记录渲染模板
+  detailTemplate?: string;        // list 节使用：详情模板
+
+  // 可用占位符
+  availableFields?: string[];
+
+  // 样式
+  style?: Record<string, any>;
+
+  sortOrder: number;
+}
+
+/** 模板 */
 export interface Template {
   id: string;
   name: string;
   thumbnailUrl?: string;
   wordTemplateKey: string;
-  layoutData: LayoutData;
+  sections?: TemplateSection[];   // 新版 section 模式
+  layoutData?: LayoutData;        // 旧版 Puck 模式（兼容）
   tags: string[];
   usageCount: number;
   isOfficial: boolean;
 }
+
+// =================== API ===================
 
 export const layoutsApi = {
   getList() {
@@ -72,6 +97,18 @@ export const templatesApi = {
 
   getById(id: string) {
     return request.get<any, { code: number; data: Template }>(`/templates/${id}`);
+  },
+
+  create(data: Partial<Template>) {
+    return request.post<any, { code: number; data: Template }>('/templates', data);
+  },
+
+  update(id: string, data: Partial<Template>) {
+    return request.put<any, { code: number; data: Template }>(`/templates/${id}`, data);
+  },
+
+  delete(id: string) {
+    return request.delete<any, { code: number }>(`/templates/${id}`);
   },
 
   useTemplate(id: string) {

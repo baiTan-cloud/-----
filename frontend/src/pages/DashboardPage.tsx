@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Row, Col, Card, Statistic, Typography, Skeleton } from 'antd';
+import { Row, Col, Card, Statistic, Typography } from 'antd';
 import {
   FileTextOutlined,
   TagOutlined,
@@ -101,7 +101,7 @@ const DashboardPage: React.FC = () => {
       <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
         <Col xs={24} lg={12}>
           <Card title="技能词云" style={{ minHeight: 300 }}>
-            {loading ? <Skeleton active /> : <SkillCloud />}
+            <SkillCloud />
           </Card>
         </Col>
         <Col xs={24} lg={12}>

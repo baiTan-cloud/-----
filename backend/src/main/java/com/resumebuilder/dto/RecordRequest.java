@@ -21,14 +21,35 @@ public class RecordRequest {
 
     private Date endDate;
 
-    @NotBlank(message = "描述不能为空")
+    /** @deprecated 旧字段，新记录可留空 */
+    @Deprecated
     private String description;
+
+    private String role;
+
+    private String orgName;
+
+    private String whatDone;
+
+    private String challenge;
+
+    private String solution;
+
+    private String outcome;
 
     private List<String> achievements;
 
     private List<String> skills;
 
+    private String major;
+
+    private String degree;
+
+    private String gpa;
+
     private List<DailyRecord.Attachment> attachments;
+
+    private List<DailyRecord.Entry> entries;
 
     private String link;
 

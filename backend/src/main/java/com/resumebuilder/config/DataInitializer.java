@@ -2,6 +2,7 @@ package com.resumebuilder.config;
 
 import com.resumebuilder.entity.ResumeLayout;
 import com.resumebuilder.entity.Template;
+import com.resumebuilder.entity.TemplateSection;
 import com.resumebuilder.entity.User;
 import com.resumebuilder.repository.TemplateRepository;
 import com.resumebuilder.repository.UserRepository;
@@ -122,7 +123,43 @@ public class DataInitializer implements CommandLineRunner {
         )));
         templateRepository.save(t3);
 
-        System.out.println("[Seed] 已创建 3 个官方模板");
+        // 模板4：文案模板版简约科技蓝（新增 sections 模式）
+        Template t4 = new Template();
+        t4.setName("A4 标准简历");
+        t4.setWordTemplateKey("tech_blue.docx");
+        t4.setTags(Arrays.asList("互联网", "简约", "文案模板"));
+        t4.setUsageCount(0);
+        t4.setIsOfficial(true);
+        t4.setCreatedAt(new Date());
+        t4.setSections(Arrays.asList(
+                // 个人信息节
+                section("sec-personal", "personal", null, "个人信息", 0,
+                        "{{name}} | {{email}}", null, null, null,
+                        Arrays.asList("name", "email", "phone"),
+                        mapOf("textAlign", "center", "marginBottom", 16,
+                                "titleFontSize", 22, "titleColor", "#1890ff")),
+                // 项目经历列表节
+                section("sec-project", "list", "project", "项目经历", 1,
+                        null, "项目经历",
+                        "作为{{role}}，主导了{{title}}的{{whatDone}}。针对{{challenge}}，采用{{solution}}方案，最终{{outcome}}。",
+                        "技术栈：{{skills}}",
+                        Arrays.asList("title", "role", "whatDone", "challenge", "solution", "outcome", "skills", "startDate", "endDate"),
+                        mapOf("itemFontSize", 14, "itemColor", "#333333",
+                                "titleFontSize", 18, "titleColor", "#1890ff",
+                                "marginBottom", 12)),
+                // 教育经历列表节
+                section("sec-edu", "list", "education", "教育经历", 2,
+                        null, "教育经历",
+                        "{{degree}} · {{orgName}} · {{major}}",
+                        "GPA：{{gpa}}",
+                        Arrays.asList("title", "degree", "orgName", "major", "gpa", "startDate", "endDate"),
+                        mapOf("itemFontSize", 14, "itemColor", "#333333",
+                                "titleFontSize", 18, "titleColor", "#1890ff",
+                                "marginBottom", 12))
+        ));
+        templateRepository.save(t4);
+
+        System.out.println("[Seed] 已创建 4 个官方模板（含 1 个新版文案模板）");
     }
 
     /** 构建 Puck 布局数据 */
@@ -142,6 +179,26 @@ public class DataInitializer implements CommandLineRunner {
         comp.put("type", type);
         comp.put("props", props);
         return comp;
+    }
+
+    /** 构建一个模板节 */
+    private TemplateSection section(String id, String type, String dataBinding, String label,
+                                     int sortOrder, String contentTemplate, String titleTemplate,
+                                     String itemTemplate, String detailTemplate,
+                                     List<String> availableFields, Map<String, Object> style) {
+        TemplateSection s = new TemplateSection();
+        s.setId(id);
+        s.setType(type);
+        s.setDataBinding(dataBinding);
+        s.setLabel(label);
+        s.setSortOrder(sortOrder);
+        s.setContentTemplate(contentTemplate);
+        s.setTitleTemplate(titleTemplate);
+        s.setItemTemplate(itemTemplate);
+        s.setDetailTemplate(detailTemplate);
+        s.setAvailableFields(availableFields);
+        s.setStyle(style);
+        return s;
     }
 
     /** 类型安全的多字段 Map 构建 */

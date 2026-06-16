@@ -30,4 +30,12 @@ public interface DailyRecordRepository extends MongoRepository<DailyRecord, Stri
 
     // 统计用户各类型记录数量
     long countByUserIdAndDeletedFalse(String userId);
+
+    // 按类型分组计数
+    @Query(value = "{ 'userId': ?0, 'deleted': false }", fields = "{ 'type': 1 }")
+    List<DailyRecord> findAllActiveTypes(String userId);
+
+    // 按类型分组统计数量（通过 aggregation）
+    @Query("{ 'userId': ?0, 'deleted': false }")
+    List<DailyRecord> findAllActiveByUserId(String userId);
 }

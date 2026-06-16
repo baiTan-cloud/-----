@@ -17,6 +17,7 @@ jwt:
 hanlp:
   custom-dict: classpath:hanlp/custom_dict.txt
   stopwords: classpath:hanlp/stopwords.txt
+  skill-exclude: classpath:hanlp/skill_exclude.txt
 
 app:
   template-path: ${user.dir}/templates

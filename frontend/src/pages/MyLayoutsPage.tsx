@@ -23,6 +23,20 @@ import { useNavigate } from 'react-router-dom';
 import { layoutsApi, exportApi } from '../api/layouts';
 import type { ResumeLayout } from '../api/layouts';
 
+/** 从 blob 错误响应中提取错误消息 */
+async function extractErrorMsg(err: any): Promise<string | null> {
+  if (err?.response?.data instanceof Blob) {
+    try {
+      const text = await err.response.data.text();
+      const json = JSON.parse(text);
+      return json.message || json.error || null;
+    } catch {
+      return null;
+    }
+  }
+  return err?.response?.data?.message || err?.message || null;
+}
+
 const { Title, Text } = Typography;
 
 const MyLayoutsPage: React.FC = () => {
@@ -74,8 +88,9 @@ const MyLayoutsPage: React.FC = () => {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
       message.success('导出成功');
-    } catch {
-      message.error('导出失败，请确保有日常记录数据');
+    } catch (err: any) {
+      const errMsg = await extractErrorMsg(err);
+      message.error(errMsg || '导出失败，请确保有日常记录数据');
     } finally {
       setExportingId(null);
     }

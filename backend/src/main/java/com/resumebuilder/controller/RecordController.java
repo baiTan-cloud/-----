@@ -6,11 +6,17 @@ import com.resumebuilder.entity.DailyRecord;
 import com.resumebuilder.service.RecordService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -68,5 +74,40 @@ public class RecordController {
         String userId = authentication.getName();
         recordService.deleteRecord(userId, id);
         return ApiResponse.success("删除成功", null);
+    }
+
+    /** 批量删除 */
+    @DeleteMapping("/batch")
+    public ApiResponse<Void> batchDelete(Authentication authentication, @RequestBody List<String> ids) {
+        String userId = authentication.getName();
+        recordService.batchDelete(userId, ids);
+        return ApiResponse.success("批量删除成功", null);
+    }
+
+    /** 导出 JSON */
+    @GetMapping("/export")
+    public ResponseEntity<byte[]> exportRecords(
+            Authentication authentication,
+            @RequestParam(required = false) String type,
+            @RequestParam(defaultValue = "json") String format) {
+        String userId = authentication.getName();
+        String json = recordService.exportRecords(userId, type, format);
+
+        String filename = "records_export." + ("csv".equals(format) ? "csv" : "json");
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentDispositionFormData("attachment", filename);
+        headers.setContentType(MediaType.parseMediaType(
+                "csv".equals(format) ? "text/csv" : "application/json"));
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(json.getBytes(StandardCharsets.UTF_8));
+    }
+
+    /** 导入 JSON */
+    @PostMapping("/import")
+    public ApiResponse<Integer> importRecords(Authentication authentication, @RequestBody List<RecordRequest> requests) {
+        String userId = authentication.getName();
+        int count = recordService.importRecords(userId, requests);
+        return ApiResponse.success("导入成功", count);
     }
 }

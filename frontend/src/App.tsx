@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './stores/authStore';
 import AppLayout from './components/AppLayout';
@@ -7,6 +8,7 @@ import RecordsPage from './pages/RecordsPage';
 import EditorPage from './pages/EditorPage';
 import TemplatesPage from './pages/TemplatesPage';
 import MyLayoutsPage from './pages/MyLayoutsPage';
+import TemplateEditorPage from './pages/TemplateEditorPage';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const token = useAuthStore((s) => s.token);
@@ -15,6 +17,11 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   const token = useAuthStore((s) => s.token);
+  const init = useAuthStore((s) => s.init);
+
+  useEffect(() => {
+    init();
+  }, [init]);
 
   return (
     <Routes>
@@ -35,6 +42,7 @@ export default function App() {
         <Route path="records" element={<RecordsPage />} />
         <Route path="editor" element={<EditorPage />} />
         <Route path="templates" element={<TemplatesPage />} />
+        <Route path="template-editor" element={<TemplateEditorPage />} />
         <Route path="my-layouts" element={<MyLayoutsPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />

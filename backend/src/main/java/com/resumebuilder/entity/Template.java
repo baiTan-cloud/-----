@@ -19,8 +19,21 @@ public class Template {
 
     private String thumbnailUrl;
 
-    private String wordTemplateKey; // 例如 tech_blue.docx
+    /** Word 导出模板文件名（如 tech_blue.docx） */
+    private String wordTemplateKey;
 
+    /**
+     * ===== 新版：section-based 模板结构 =====
+     * 模板由多个节(section)组成，每个节定义了数据来源、文案模板和样式。
+     * 取代旧版的 Puck layout 模式。
+     */
+    private List<TemplateSection> sections;
+
+    /**
+     * ===== 旧版：Puck layout 数据 =====
+     * @deprecated 保留用于向下兼容，新版模板请使用 sections 字段。
+     */
+    @Deprecated
     private ResumeLayout.LayoutData layoutData;
 
     private List<String> tags;
